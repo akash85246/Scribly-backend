@@ -9,15 +9,20 @@ import {
 
 async function createNote(req, res) {
   try {
-    const { title, content, alert, position } = req.body;
+    const { title, content, alert } = req.body;
     const user = req.user;
     const uid = user.id;
     const sid = user.sid;
 
+    const prevNotes = await getNotes(uid);
+    const noteCount = prevNotes.length;
+    const position = noteCount + 1;
     const note = await addNote(uid, sid, title, content, alert, position);
 
     if (note && note.length > 0) {
-      return res.status(200).json({ message: "Note added successfully" });
+      return res
+        .status(200)
+        .json({ message: "Note added successfully", note: note });
     } else {
       return res.status(400).json({ message: "Note could not be added" });
     }
@@ -27,14 +32,17 @@ async function createNote(req, res) {
   }
 }
 
-async function changeNote(req, res) {
+async function updateNoteByid(req, res) {
   try {
-    const { id, title, content, alert, position, star } = req.body;
+    const { id, title, content, alert, position } = req.body;
+    console.log("body", id, title, content, alert, position);
+    const note = await updateNote({id, title, content, alert, position});
+    console.log("note", note);
+    console.log("note", note.length);
+    console.log("note", note && note.length > 0);
 
-    const note = await updateNote(id, title, content, alert, position, star);
-
-    if (note && note.length > 0) {
-      return res.status(200).json({ message: "Note updated successfully" });
+    if (note) {
+      return res.status(200).json({note:note});
     } else {
       return res.status(400).json({ message: "Note could not be updated" });
     }
@@ -47,16 +55,16 @@ async function changeNote(req, res) {
 async function markNote(req, res) {
   try {
     const { id, star } = req.body;
-
-    const note = await updateNote(id, star);
-
-    if (note && note.length > 0) {
-      return res.status(200).json({ message: "Note updated successfully" });
+    console.log("id", id, star);
+    const note = await updateNote({id:id, star:star});
+    console.log("note", note);
+    if (note) {
+      return res.status(200).json({note:note});
     } else {
       return res.status(400).json({ message: "Note could not be updated" });
     }
   } catch (error) {
-    console.error("Error adding note:", error);
+    console.error("Error marking  note:", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 }
@@ -89,7 +97,7 @@ async function getAllNote(req, res) {
     if (notes && notes.length > 0) {
       return res.status(200).json({ notes });
     } else {
-      return res.status(404).json({ message: "No notes found" });
+      return res.status(201).json({ notes: [] });
     }
   } catch (error) {
     console.error("Error fetching notes:", error);
@@ -102,7 +110,7 @@ async function sortAllNotes(req, res) {
     const { type } = req.body;
     const user = req.user;
     const id = user.id;
-    const notes = await getNotes(id, type);
+    const notes = await sortNote(id, type);
     if (notes && notes.length > 0) {
       return res.status(200).json({ notes });
     } else {
@@ -119,11 +127,7 @@ async function deleteNoteById(req, res) {
     const { id } = req.body;
     const note = await deleteNote(id);
 
-    if (note && note.length > 0) {
-      return res.status(200).json({ message: "Note deleted successfully" });
-    } else {
-      return res.status(404).json({ message: "Note not found" });
-    }
+    return res.status(200).json({ message: "Note deleted successfully" });
   } catch (error) {
     console.error("Error deleting note:", error);
     return res.status(500).json({ message: "Internal Server Error" });
@@ -147,9 +151,9 @@ async function deletAllNoteById(req, res) {
   }
 }
 
-export default {
+export {
   createNote,
-  changeNote,
+  updateNoteByid,
   markNote,
   changePosition,
   getAllNote,

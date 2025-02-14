@@ -1,11 +1,30 @@
 import { changeSetting, getSetting } from "../db/queries.js";
 
+async function getSettingById(req, res) {
+  try {
+    const user = req.user;
+    const sid = user.sid;
+
+    const prevSetting = await getSetting(sid);
+    if (!prevSetting) {
+      return res.status(404).json({ message: "Settings not found" });
+    }
+    
+    res.status(200).json({
+      setting: prevSetting[0],
+    });
+  } catch (error) {
+    console.error("Error getting user setting", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
 async function updateDarkmode(req, res) {
   try {
     const user = req.user;
-    const id = user.id;
+    const sid = user.sid;
 
-    const prevSetting = await getSetting(id);
+    const prevSetting = await getSetting(sid);
     if (!prevSetting) {
       return res.status(404).json({ message: "Settings not found" });
     }
@@ -35,10 +54,10 @@ async function updateDarkmode(req, res) {
 async function updateBg(req, res) {
   try {
     const user = req.user;
-    const id = user.id;
+    const sid = user.sid;
     const { bg } = req.body;
 
-    const prevSetting = await getSetting(id);
+    const prevSetting = await getSetting(sid);
     if (!prevSetting) {
       return res.status(404).json({ message: "Settings not found" });
     }
@@ -66,9 +85,9 @@ async function updateBg(req, res) {
 async function updateDrag(req, res) {
   try {
     const user = req.user;
-    const id = user.id;
+    const sid = user.sid;
 
-    const prevSetting = await getSetting(id);
+    const prevSetting = await getSetting(sid);
     if (!prevSetting) {
       return res.status(404).json({ message: "Settings not found" });
     }
@@ -97,9 +116,9 @@ async function updateDrag(req, res) {
 async function updateNotification(req, res) {
   try {
     const user = req.user;
-    const id = user.id;
+    const sid = user.sid;
 
-    const prevSetting = await getSetting(id);
+    const prevSetting = await getSetting(sid);
     if (!prevSetting) {
       return res.status(404).json({ message: "Settings not found" });
     }
@@ -125,4 +144,10 @@ async function updateNotification(req, res) {
   }
 }
 
-export { updateDarkmode, updateBg, updateDrag, updateNotification };
+export {
+  updateDarkmode,
+  updateBg,
+  updateDrag,
+  updateNotification,
+  getSettingById,
+};

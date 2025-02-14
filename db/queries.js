@@ -17,13 +17,13 @@ const createUserTable = async () => {
    CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     profile_picture TEXT DEFAULT NULL,
-    username VARCHAR(50) NOT NULL UNIQUE,
+    username VARCHAR(50) NOT NULL ,
     email TEXT NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     sid INTEGER, -- Foreign key referencing settings
     last_online TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_users_settings FOREIGN KEY (sid) REFERENCES settings(id) ON DELETE SET NULL
-);
+)
   `;
   await pool.query(query);
   console.log("✅ User table is ready");
@@ -34,15 +34,15 @@ const addUser = async (username, profile_picture, email, password) => {
   const sid = settings[0].id;
   const query =
     "INSERT INTO users (username,profile_picture,email,password,sid) VALUES ($1, $2,$3,$4,$5) RETURNING *";
-  const values = [username, profile_picture, email, password,sid];
+  const values = [username, profile_picture, email, password, sid];
+
   const { rows } = await pool.query(query, values);
-  
   return rows;
 };
 
 const getUser = async (email) => {
   const query =
-    "SELECT username,profile_picture,email FROM users WHERE email=$1";
+    "SELECT username,profile_picture,email,sid,id FROM users WHERE email=$1";
   const values = [email];
   const { rows } = await pool.query(query, values);
   return rows;
@@ -92,7 +92,7 @@ const createSetting = async () => {
     last_updated_at = new Date();
   const query =
     "INSERT INTO settings (darkmode,bg,drag,notification,last_updated_at) VALUES ($1, $2,$3,$4,$5) RETURNING *";
-  const values = [darkmode,bg,drag,notification,last_updated_at];
+  const values = [darkmode, bg, drag, notification, last_updated_at];
   const { rows } = await pool.query(query, values);
   return rows;
 };
@@ -152,12 +152,12 @@ const changeSetting = async (
   return rows.length ? rows[0] : null;
 };
 
-const getSetting =async (id)=>{
-  const query = "SELECT * FROM settings WHERE uid=$1";
-  const value=[id];
-  const { rows } = await pool.query(query,value);
+const getSetting = async (id) => {
+  const query = "SELECT * FROM settings WHERE id=$1";
+  const value = [id];
+  const { rows } = await pool.query(query, value);
   return rows;
-}
+};
 
 const createNoteTable = async () => {
   const query = `
@@ -184,15 +184,14 @@ const createNoteTable = async () => {
 // Function to add a new note
 const addNote = async (id, sid, title, content, alert, position) => {
   const convertMarkdown = (text) => {
-    const rawHtml = marked(text); // Convert Markdown to HTML
-    return purify.sanitize(rawHtml); // Sanitize the converted HTML
+    const rawHtml = marked(text);
+    return purify.sanitize(rawHtml);
   };
 
   const title_markdown = convertMarkdown(title);
   const content_markdown = convertMarkdown(content);
 
-  const query =
-    "INSERT INTO notes (uid ,sid,title, content,content_markdown,title_markdown, alert,position) VALUES ($1, $2,$3,$4,$5$,$6,$7,$8) RETURNING *";
+  const query = `INSERT INTO notes (uid ,sid,title, content,content_markdown,title_markdown, alert,position) VALUES ($1, $2,$3,$4,$5,$6,$7,$8) RETURNING *`;
   const values = [
     id,
     sid,
@@ -207,78 +206,83 @@ const addNote = async (id, sid, title, content, alert, position) => {
   return rows;
 };
 
-const updateNote = async (id, title, content, alert, position, star) => {
+const updateNote = async ({ id, title, content, alert, position, star }) => {
   const convertMarkdown = (text) => {
-    const rawHtml = marked(text); // Convert Markdown to HTML
-    return purify.sanitize(rawHtml); // Sanitize the converted HTML
+    const rawHtml = marked(text);
+    return purify.sanitize(rawHtml);
   };
 
-  const title_markdown = convertMarkdown(title);
-  const content_markdown = convertMarkdown(content);
+  const noteQuery = "SELECT * FROM notes WHERE id = $1;";
+  const noteResult = (await pool.query(noteQuery, [id])).rows[0];
 
-  const noteQuery = "SELECT * FROM notes WHERE uid = $1;";
-  const noteResult = await pool.query(noteQuery, [id]);
+  let title_markdown = noteResult.title_markdown;
+  let content_markdown = noteResult.content_markdown;
 
-  //rention of old values
+  if (title !== undefined && title !== noteResult.title) {
+    title_markdown = convertMarkdown(title);
+  }
+  if (content !== undefined && content !== noteResult.content) {
+    content_markdown = convertMarkdown(content);
+  }
+
+  // Retain old values if new ones are undefined
   title = title !== undefined ? title : noteResult.title;
-  title_markdown =
-    title !== undefined ? title_markdown : noteResult.title_markdown;
   content = content !== undefined ? content : noteResult.content;
-  content_markdown =
-    content !== undefined ? content_markdown : noteResult.content_markdown;
   alert = alert !== undefined ? alert : noteResult.alert;
   position = position !== undefined ? position : noteResult.position;
   star = star !== undefined ? star : noteResult.star;
 
-  const query =
-    " UPDATE notes SET title = $1, content = $2,content_markdown = $3,title_markdown = $4, alert = $5,position = $6,star=$7 WHERE  id= $8 RETURNING *;";
-  const values = [
-    title,
-    content,
-    content_markdown,
-    title_markdown,
-    alert,
-    position,
-    star,
-    id,
-  ];
+
+  const query = `
+    UPDATE notes 
+    SET title = $1, content = $2, content_markdown = $3, title_markdown = $4, 
+        alert = $5, position = $6, star = $7 
+    WHERE id = $8 
+    RETURNING *;
+  `;
+  const values = [title, content, content_markdown, title_markdown, alert, position, star, id];
+
   const { rows } = await pool.query(query, values);
+
   return rows[0];
 };
 
 // Function to get all notes
 const getNotes = async (id) => {
-  const query = "SELECT * FROM notes WHERE uid=$1 ORDER BY star DESC, created_at DESC;";
-  const value=[id];
-  const { rows } = await pool.query(query,value);
+  const query =
+    "SELECT * FROM notes WHERE uid=$1 ORDER BY star DESC, created_at DESC;";
+  const value = [id];
+  const { rows } = await pool.query(query, value);
   return rows;
 };
 
 const getNoteById = async (id) => {
   const query = "SELECT * FROM notes WHERE id=$1";
-  const value=[id];
-  const { rows } = await pool.query(query,value);
-  return rows;
+  const value = [id];
+  const { rows } = await pool.query(query, value);
+  return rows[0];
 };
 
 // Function to sort all notes
-const sortNote = async (id,type) => {
-  let query = "SELECT * FROM notes WHERE uid=$1 ORDER BY star DESC, created_at DESC;";
+const sortNote = async (id, type) => {
+  let query =
+    "SELECT * FROM notes WHERE uid=$1 ORDER BY star DESC, created_at DESC;";
   if (type == "title") {
-    query = "SELECT * FROM notes WHERE uid=$1 ORDER BY title DESC, created_at DESC;";
+    query =
+      "SELECT * FROM notes WHERE uid=$1 ORDER BY title DESC, created_at DESC;";
   } else if (type == "date") {
     query = "SELECT * FROM notes WHERE uid=$1 ORDER BY created_at DESC;";
   } else if (type == "size") {
     query =
       "SELECT * FROM notes WHERE uid=$1 ORDER BY content_markdown DESC, created_at DESC;";
   } else if (type == "alert") {
-    query = "SELECT * FROM notes WHERE uid=$1 ORDER BY alert DESC, created_at DESC;";
+    query =
+      "SELECT * FROM notes WHERE uid=$1 ORDER BY alert DESC, created_at DESC;";
   }
-  const value=[id]
-  const { rows } = await pool.query(query,value);
+  const value = [id];
+  const { rows } = await pool.query(query, value);
   return rows;
 };
-
 
 //Function to delete note
 const deleteNote = async (id) => {

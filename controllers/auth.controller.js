@@ -11,6 +11,17 @@ async function signIn(req, res, next) {
   );
 }
 
+async function userInfo(req, res) {
+  try {
+  
+    const user = req.user;
+    res.json({ user });
+  } catch (error) {
+    console.error("Error updating login activity:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
 async function signOut(req, res) {
   req.logout((err) => {
     if (err) return res.status(500).json({ error: "Signout failed" });
@@ -22,37 +33,44 @@ async function signOut(req, res) {
 async function googleCallback(req, res, next) {
   passport.authenticate("google", async (err, user) => {
     if (err || !user) {
-      return res.status(401).json({ error: "Authentication failed" });
+      return res.send(
+        `<script>
+          window.opener.postMessage({ success: false, message: "Authentication failed" }, "http://localhost:5174");
+          window.close();
+        </script>`
+      );
     }
 
-    const token = jwt.sign(
-      {
-        id: user.id,
-        email: user.email,
-        name: user.full_name,
-        profile_picture: user.profile_picture,
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
-
-    // Store token in session to access it via `/signin`
-    req.session.jwtToken = token;
-
-    // Redirect back to frontend
-    res.redirect(`${process.env.FRONTEND_URL}/${req.session.jwtToken}`);
+    try {
+      const token = jwt.sign(
+        {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          profile_picture: user.profile_picture,
+          sid:user.sid,
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+      );
+      // Send the token securely to frontend
+      res.send(
+        `<script>
+          console.log("Sending JWT to frontend");
+          window.opener.postMessage({ success: true, token: "${token}" }, "http://localhost:5174");
+          window.close();
+        </script>`
+      );
+    } catch (error) {
+      console.error("JWT Sign Error:", error);
+      res.send(
+        `<script>
+          window.opener.postMessage({ success: false, message: "Internal server error" }, "http://localhost:5174");
+          window.close();
+        </script>`
+      );
+    }
   })(req, res, next);
-}
-
-async function getJWT(req, res) {
-  if (!req.session.jwtToken) {
-    return res.status(401).json({ error: "No active session" });
-  }
-  res
-    .status(200)
-    .json({ message: "Signin Successful", jwt: req.session.jwtToken });
-
-  req.session.jwtToken = null;
 }
 
 async function loginUpdate(req, res) {
@@ -98,16 +116,15 @@ passport.use(
     async (accessToken, refreshToken, profile, cb) => {
       try {
         const email = profile.emails[0].value;
-        const fullName = profile.displayName;
-        const profilePicture = profile.photos[0]?.value;
-
+        const username = profile.displayName;
+        const profile_picture = profile.photos[0]?.value;
+       
         // Check if user exists
         const result = await getUser(email);
-
         if (result.length === 0) {
           const newUser = await addUser(
-            fullName,
-            profilePicture,
+            username,
+            profile_picture,
             email,
             "Google"
           );
@@ -132,4 +149,4 @@ passport.deserializeUser((user, cb) => {
   cb(null, user);
 });
 
-export { signIn, signOut, googleCallback, userDelete, loginUpdate, getJWT };
+export { signIn, signOut, googleCallback, userDelete, loginUpdate, userInfo };

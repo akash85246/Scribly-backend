@@ -1,4 +1,4 @@
-import {getNoteById} from "../db/queries"
+import {getNoteById} from "../db/queries.js"
 const verifyNoteOwnership = async (req, res, next) => {
   try {
     const user = req.user;
@@ -6,14 +6,15 @@ const verifyNoteOwnership = async (req, res, next) => {
     const { id } = req.body;
 
     const note = await getNoteById(id);
-
+    console.log("note",note); 
     if (!note) {
       return res.status(404).json({ message: "Note not found" });
     }
     if (note.uid !== uid) {
+      console.log("note uid",note.uid,"\n uid" ,uid);
       return res
         .status(403)
-        .json({ message: "Unauthorized: You can't delete this note" });
+        .json({ message: "Unauthorized" });
     }
     next();
   } catch (error) {
@@ -22,4 +23,4 @@ const verifyNoteOwnership = async (req, res, next) => {
   }
 };
 
-module.exports = verifyNoteOwnership;
+export default verifyNoteOwnership;

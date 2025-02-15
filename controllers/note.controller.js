@@ -1,6 +1,7 @@
 import {
   addNote,
   updateNote,
+  swapNote,
   sortNote,
   getNotes,
   deleteNote,
@@ -36,13 +37,13 @@ async function updateNoteByid(req, res) {
   try {
     const { id, title, content, alert, position } = req.body;
     console.log("body", id, title, content, alert, position);
-    const note = await updateNote({id, title, content, alert, position});
+    const note = await updateNote({ id, title, content, alert, position });
     console.log("note", note);
     console.log("note", note.length);
     console.log("note", note && note.length > 0);
 
     if (note) {
-      return res.status(200).json({note:note});
+      return res.status(200).json({ note: note });
     } else {
       return res.status(400).json({ message: "Note could not be updated" });
     }
@@ -56,10 +57,10 @@ async function markNote(req, res) {
   try {
     const { id, star } = req.body;
     console.log("id", id, star);
-    const note = await updateNote({id:id, star:star});
+    const note = await updateNote({ id: id, star: star });
     console.log("note", note);
     if (note) {
-      return res.status(200).json({note:note});
+      return res.status(200).json({ note: note });
     } else {
       return res.status(400).json({ message: "Note could not be updated" });
     }
@@ -71,19 +72,20 @@ async function markNote(req, res) {
 
 async function changePosition(req, res) {
   try {
-    const { id, position } = req.body;
+    const { id1, id2 } = req.body;
 
-    const note = await updateNote(id, position);
+    console.log("id1", id1, "id2", id2);
+    const {note1 ,note2 }= await swapNote({id1,id2});
 
-    if (note && note.length > 0) {
+    if (note1 && note2) {
       return res
         .status(200)
         .json({ message: "Note position changed successfully" });
     } else {
-      return res.status(400).json({ message: "Note could not be updated" });
+      return res.status(400).json({ message: "Note could not be changed" });
     }
   } catch (error) {
-    console.error("Error adding note:", error);
+    console.error("Error changing note position :", error);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 }

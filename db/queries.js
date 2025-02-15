@@ -232,7 +232,6 @@ const updateNote = async ({ id, title, content, alert, position, star }) => {
   position = position !== undefined ? position : noteResult.position;
   star = star !== undefined ? star : noteResult.star;
 
-
   const query = `
     UPDATE notes 
     SET title = $1, content = $2, content_markdown = $3, title_markdown = $4, 
@@ -240,22 +239,69 @@ const updateNote = async ({ id, title, content, alert, position, star }) => {
     WHERE id = $8 
     RETURNING *;
   `;
-  const values = [title, content, content_markdown, title_markdown, alert, position, star, id];
+  const values = [
+    title,
+    content,
+    content_markdown,
+    title_markdown,
+    alert,
+    position,
+    star,
+    id,
+  ];
 
   const { rows } = await pool.query(query, values);
 
   return rows[0];
 };
 
+//Function to swap notes
+const swapNote = async ({ id1, id2 }) => {
+  const client = await pool.connect(); // Start transaction
+  try {
+    await client.query("BEGIN");
+
+    const note1 = await getNoteById(id1);
+    const note2 = await getNoteById(id2);
+
+    if(note1.star !== note2.star){
+      throw new Error("Cannot swap starred and non-starred notes");
+    }
+
+    const pos1 = note1.position;
+    const pos2 = note2.position;
+
+    console.log("Pos 1", pos1);
+    console.log("Pos 2", pos2);
+
+    const query = `UPDATE notes SET position = $1 WHERE id = $2 RETURNING *;`;
+
+    // Swap positions
+    const { rows: rows1 } = await client.query(query, [pos2, id1]);
+    const { rows: rows2 } = await client.query(query, [pos1, id2]);
+
+    await client.query("COMMIT"); // Commit transaction
+
+    return { note1: rows1[0], note2: rows2[0] };
+  } catch (error) {
+    await client.query("ROLLBACK"); // Rollback if any error occurs
+    console.error("Error swapping notes:", error);
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+
 // Function to get all notes
 const getNotes = async (id) => {
   const query =
-    "SELECT * FROM notes WHERE uid=$1 ORDER BY star DESC, created_at DESC;";
+    "SELECT * FROM notes WHERE uid=$1 ORDER BY star DESC, position ASC;";
   const value = [id];
   const { rows } = await pool.query(query, value);
   return rows;
 };
 
+//Function to get note by ID
 const getNoteById = async (id) => {
   const query = "SELECT * FROM notes WHERE id=$1";
   const value = [id];
@@ -314,6 +360,7 @@ export {
   changeSetting,
   addNote,
   updateNote,
+  swapNote,
   sortNote,
   getNotes,
   getNoteById,

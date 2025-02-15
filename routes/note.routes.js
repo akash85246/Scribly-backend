@@ -1,5 +1,5 @@
 import verifyUser from "../middleware/auth.middleware.js";
-import verifyNoteOwnership from "../middleware/verifyNoteOwnership.middleware.js";
+import { verifyNoteOwnership,verifySwapNoteOwnership} from "../middleware/verifyNoteOwnership.middleware.js";
 import express from "express";
 
 const router = express.Router();
@@ -20,7 +20,7 @@ router.get("/sort", verifyUser, verifyNoteOwnership, sortAllNotes);
 router.post("/add", verifyUser, createNote);
 router.put("/update", verifyUser, verifyNoteOwnership, updateNoteByid);
 router.put("/mark", verifyUser, verifyNoteOwnership, markNote);
-router.put("/position", verifyUser, verifyNoteOwnership, changePosition);
+router.put("/position", verifyUser,verifySwapNoteOwnership, changePosition);
 router.delete("/delete", verifyUser, verifyNoteOwnership, deleteNoteById);
 router.delete("/delete/all", verifyUser, verifyNoteOwnership, deletAllNoteById);
 

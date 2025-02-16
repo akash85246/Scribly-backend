@@ -6,12 +6,10 @@ const verifyNoteOwnership = async (req, res, next) => {
     const { id } = req.body;
 
     const note = await getNoteById(id);
-    console.log("note",note); 
     if (!note) {
       return res.status(404).json({ message: "Note not found" });
     }
     if (note.uid !== uid) {
-      console.log("note uid",note.uid,"\n uid" ,uid);
       return res
         .status(403)
         .json({ message: "Unauthorized" });
@@ -36,7 +34,6 @@ const verifySwapNoteOwnership = async (req, res, next) => {
       return res.status(404).json({ message: "Note not found" });
     }
     if (note1.uid !== uid || note2.uid !== uid) {
-      console.log("note uid",note.uid,"\n uid" ,uid);
       return res
         .status(403)
         .json({ message: "Unauthorized" });

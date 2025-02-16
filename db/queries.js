@@ -42,7 +42,7 @@ const addUser = async (username, profile_picture, email, password) => {
 
 const getUser = async (email) => {
   const query =
-    "SELECT username,profile_picture,email,sid,id FROM users WHERE email=$1";
+    "SELECT username,profile_picture,email,sid,id,last_online FROM users WHERE email=$1";
   const values = [email];
   const { rows } = await pool.query(query, values);
   return rows;
@@ -98,7 +98,6 @@ const createSetting = async () => {
 };
 
 const changeSetting = async (
-  id,
   sid,
   darkmode,
   bg,
@@ -106,11 +105,12 @@ const changeSetting = async (
   notification,
   last_updated_at
 ) => {
-  const userQuery = "SELECT * FROM settings WHERE uid = $1;";
-  const userResult = await pool.query(userQuery, [id]);
+  const userQuery = "SELECT * FROM settings WHERE id = $1;";
+  const userResult = await pool.query(userQuery, [sid]);
 
   let query;
   let values;
+
   const userFound = userResult.rows.length > 0;
   if (userFound) {
     const prevSettings = userResult.rows[0];
@@ -144,7 +144,6 @@ const changeSetting = async (
       drag ?? true,
       notification ?? true,
       new Date(),
-      userFound ? id : null,
     ];
   }
 
@@ -152,9 +151,9 @@ const changeSetting = async (
   return rows.length ? rows[0] : null;
 };
 
-const getSetting = async (id) => {
+const getSetting = async (sid) => {
   const query = "SELECT * FROM settings WHERE id=$1";
-  const value = [id];
+  const value = [sid];
   const { rows } = await pool.query(query, value);
   return rows;
 };
@@ -264,15 +263,12 @@ const swapNote = async ({ id1, id2 }) => {
     const note1 = await getNoteById(id1);
     const note2 = await getNoteById(id2);
 
-    if(note1.star !== note2.star){
+    if (note1.star !== note2.star) {
       throw new Error("Cannot swap starred and non-starred notes");
     }
 
     const pos1 = note1.position;
     const pos2 = note2.position;
-
-    console.log("Pos 1", pos1);
-    console.log("Pos 2", pos2);
 
     const query = `UPDATE notes SET position = $1 WHERE id = $2 RETURNING *;`;
 

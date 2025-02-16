@@ -9,7 +9,7 @@ async function getSettingById(req, res) {
     if (!prevSetting) {
       return res.status(404).json({ message: "Settings not found" });
     }
-    
+
     res.status(200).json({
       setting: prevSetting[0],
     });
@@ -23,27 +23,28 @@ async function updateDarkmode(req, res) {
   try {
     const user = req.user;
     const sid = user.sid;
-
+    const id = user.id;
     const prevSetting = await getSetting(sid);
     if (!prevSetting) {
       return res.status(404).json({ message: "Settings not found" });
     }
 
-    const newDarkmode = !prevSetting.darkmode;
-
+    const newDarkmode = !prevSetting[0].darkmode;
     const updatedSetting = await changeSetting(
-      id,
-      prevSetting.sid,
+      sid,
       newDarkmode,
-      prevSetting.bg,
-      prevSetting.drag,
-      prevSetting.notification,
+      prevSetting[0].bg,
+      prevSetting[0].drag,
+      prevSetting[0].notification,
       new Date()
     );
 
+    if (!updatedSetting) {
+      return res.status(404).json({ message: "Settings not found" });
+    }
+
     res.status(200).json({
       message: "Dark mode updated successfully",
-      darkmode: newDarkmode,
     });
   } catch (error) {
     console.error("Error updating dark mode:", error);
@@ -63,18 +64,20 @@ async function updateBg(req, res) {
     }
 
     const updatedSetting = await changeSetting(
-      id,
-      prevSetting.sid,
-      prevSetting.darkmode,
+      sid,
+      prevSetting[0].darkmode,
       bg,
-      prevSetting.drag,
-      prevSetting.notification,
+      prevSetting[0].drag,
+      prevSetting[0].notification,
       new Date()
     );
 
+    if (!updatedSetting) {
+      return res.status(404).json({ message: "Settings not found" });
+    }
+
     res.status(200).json({
       message: "Background updated successfully",
-      darkmode: newDarkmode,
     });
   } catch (error) {
     console.error("Error updating Background:", error);
@@ -91,21 +94,21 @@ async function updateDrag(req, res) {
     if (!prevSetting) {
       return res.status(404).json({ message: "Settings not found" });
     }
-    const drag = !prevSetting.drag;
+    const drag = !prevSetting[0].drag;
 
     const updatedSetting = await changeSetting(
-      id,
-      prevSetting.sid,
-      prevSetting.darkmode,
-      prevSetting.bg,
+      sid,
+      prevSetting[0].darkmode,
+      prevSetting[0].bg,
       drag,
-      prevSetting.notification,
+      prevSetting[0].notification,
       new Date()
     );
-
+    if (!updatedSetting) {
+      return res.status(404).json({ message: "Settings not found" });
+    }
     res.status(200).json({
       message: "Drag updated successfully",
-      darkmode: newDarkmode,
     });
   } catch (error) {
     console.error("Error updating drag:", error);
@@ -122,21 +125,21 @@ async function updateNotification(req, res) {
     if (!prevSetting) {
       return res.status(404).json({ message: "Settings not found" });
     }
-    const notification = !prevSetting.notification;
-
+    const notification = !prevSetting[0].notification;
     const updatedSetting = await changeSetting(
-      id,
-      prevSetting.sid,
-      prevSetting.darkmode,
-      prevSetting.bg,
-      prevSetting.drag,
+      sid,
+      prevSetting[0].darkmode,
+      prevSetting[0].bg,
+      prevSetting[0].drag,
       notification,
       new Date()
     );
 
+    if (!updatedSetting) {
+      return res.status(404).json({ message: "Settings not found" });
+    }
     res.status(200).json({
       message: "Notification updated successfully",
-      darkmode: newDarkmode,
     });
   } catch (error) {
     console.error("Error updating Notification", error);

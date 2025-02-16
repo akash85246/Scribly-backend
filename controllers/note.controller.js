@@ -36,11 +36,7 @@ async function createNote(req, res) {
 async function updateNoteByid(req, res) {
   try {
     const { id, title, content, alert, position } = req.body;
-    console.log("body", id, title, content, alert, position);
     const note = await updateNote({ id, title, content, alert, position });
-    console.log("note", note);
-    console.log("note", note.length);
-    console.log("note", note && note.length > 0);
 
     if (note) {
       return res.status(200).json({ note: note });
@@ -56,9 +52,7 @@ async function updateNoteByid(req, res) {
 async function markNote(req, res) {
   try {
     const { id, star } = req.body;
-    console.log("id", id, star);
     const note = await updateNote({ id: id, star: star });
-    console.log("note", note);
     if (note) {
       return res.status(200).json({ note: note });
     } else {
@@ -73,9 +67,7 @@ async function markNote(req, res) {
 async function changePosition(req, res) {
   try {
     const { id1, id2 } = req.body;
-
-    console.log("id1", id1, "id2", id2);
-    const {note1 ,note2 }= await swapNote({id1,id2});
+    const { note1, note2 } = await swapNote({ id1, id2 });
 
     if (note1 && note2) {
       return res

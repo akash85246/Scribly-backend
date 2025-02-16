@@ -13,7 +13,6 @@ async function signIn(req, res, next) {
 
 async function userInfo(req, res) {
   try {
-  
     const user = req.user;
     res.json({ user });
   } catch (error) {

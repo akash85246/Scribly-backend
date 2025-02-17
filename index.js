@@ -4,8 +4,10 @@ import dotenv from "dotenv";
 import authRoutes from "./routes/auth.routes.js";
 import settingRoutes from "./routes/setting.routes.js";
 import noteRoutes from "./routes/note.routes.js";
+import subscriptionRoutes from "./routes/subscription.routes.js";
 import passport from "passport";
 import session from "express-session";
+import "./cron/notificationCron.js";
 
 dotenv.config();
 const app = express();
@@ -19,7 +21,7 @@ app.use(
   })
 );
 
-// ✅ Handle Preflight Requests
+// Handle Preflight Requests
 app.options("*", (req, res) => {
   const allowedOrigins = ["http://localhost:5174"];
   const origin = req.headers.origin;
@@ -62,6 +64,7 @@ app.use((req, res, next) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/setting", settingRoutes);
 app.use("/api/note", noteRoutes);
+app.use("/api/subscription", subscriptionRoutes);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => {

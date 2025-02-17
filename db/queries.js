@@ -326,6 +326,26 @@ const sortNote = async (id, type) => {
   return rows;
 };
 
+const getAlertNotes = async () => {
+  const query = `
+    SELECT 
+      s.id AS subscription_id, 
+      s.uid AS user_id, 
+      s.endpoint, 
+      s.keys, 
+      n.id AS note_id, 
+      n.alert ,
+      n.title_markdown,
+      n.content_markdown
+    FROM subscriptions s 
+    LEFT JOIN notes n ON s.uid = n.uid 
+    WHERE n.alert IS NOT NULL AND n.alert >= NOW();
+  `;
+
+  const { rows } = await pool.query(query);
+  return rows;
+};
+
 //Function to delete note
 const deleteNote = async (id) => {
   const query = "DELETE FROM notes WHERE id = $1 RETURNING *;";
@@ -342,10 +362,60 @@ const deleteAllNotes = async (uid) => {
   return rows;
 };
 
+const createSubscriptionsTable = async () => {
+  const query = `
+    CREATE TABLE IF NOT EXISTS subscriptions (
+      id SERIAL PRIMARY KEY,
+      endpoint TEXT NOT NULL UNIQUE,
+      keys JSONB NOT NULL,
+      uid INTEGER NOT NULL,
+      CONSTRAINT fk_subscription_users FOREIGN KEY (uid) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `;
+  await pool.query(query);
+  console.log("✅ Subscription table is ready");
+};
+
+const addUserSubscription = async ({ endpoint, keys, uid }) => {
+  console.log("Adding Subscription:", { endpoint, keys, uid });
+  const query = `
+    INSERT INTO subscriptions (endpoint, keys,uid) 
+    VALUES ($1, $2, $3) 
+    RETURNING *`;
+  const values = [endpoint, keys, uid];
+
+  const { rows } = await pool.query(query, values);
+  console.log("Added Rows:", rows);
+  return rows;
+};
+
+const removeUserSubscription = async ({ uid }) => {
+  // Check if the email exists
+  const findQuery = "SELECT * FROM subscriptions WHERE uid = $1;";
+  const findValues = [uid];
+  const findResult = await pool.query(findQuery, findValues);
+
+  console.log("Find Result:", findResult.rows);
+
+  if (findResult.rows.length === 0) {
+    console.warn(`No subscription found for uid: ${uid}`);
+    return [];
+  }
+
+  // Delete the subscription
+  const query = "DELETE FROM subscriptions WHERE uid = $1 RETURNING *";
+  const values = [uid];
+  const { rows } = await pool.query(query, values);
+
+  console.log("Deleted Rows:", rows);
+  return rows;
+};
+
 // Initialize the table when the app starts
 createSettingTable();
 createUserTable();
 createNoteTable();
+createSubscriptionsTable();
 
 export {
   addUser,
@@ -362,4 +432,7 @@ export {
   getNoteById,
   deleteNote,
   deleteAllNotes,
+  addUserSubscription,
+  removeUserSubscription,
+  getAlertNotes,
 };

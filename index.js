@@ -62,9 +62,9 @@ app.use((req, res, next) => {
 });
 
 app.use((req, res, next) => {
-  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
-  res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
-  res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+  res.setHeader("Cross-Origin-Opener-Policy", "unsafe-none"); // Allows window.close()
+  res.setHeader("Cross-Origin-Embedder-Policy", "unsafe-none"); // Prevents resource isolation issues
+  res.setHeader("Cross-Origin-Resource-Policy", "cross-origin"); // Allows external resources
   next();
 });
 

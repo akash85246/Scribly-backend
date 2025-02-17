@@ -14,7 +14,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:5174",
+    origin: `${import.meta.env.FRONTEND_URL}`,
     methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
     credentials: true,
     allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"],
@@ -23,7 +23,7 @@ app.use(
 
 // Handle Preflight Requests
 app.options("*", (req, res) => {
-  const allowedOrigins = ["http://localhost:5174"];
+  const allowedOrigins = [`${import.meta.env.FRONTEND_URL}`];
   const origin = req.headers.origin;
   
   if (allowedOrigins.includes(origin)) {

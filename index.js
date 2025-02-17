@@ -14,7 +14,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: `${import.meta.env.FRONTEND_URL}`,
+    origin: `${process.env.FRONTEND_URL}`,
     methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
     credentials: true,
     allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"],
@@ -23,7 +23,7 @@ app.use(
 
 // Handle Preflight Requests
 app.options("*", (req, res) => {
-  const allowedOrigins = [`${import.meta.env.FRONTEND_URL}`];
+  const allowedOrigins = [`${process.env.FRONTEND_URL}`];
   const origin = req.headers.origin;
   
   if (allowedOrigins.includes(origin)) {

@@ -34,7 +34,7 @@ async function googleCallback(req, res, next) {
     if (err || !user) {
       return res.send(
         `<script>
-          window.opener.postMessage({ success: false, message: "Authentication failed" }, "http://localhost:5174");
+          window.opener.postMessage({ success: false, message: "Authentication failed" }, "${process.env.FRONTEND_URL}");
           window.close();
         </script>`
       );
@@ -56,18 +56,21 @@ async function googleCallback(req, res, next) {
       res.send(
         `<script>
           console.log("Sending JWT to frontend");
-          window.opener.postMessage({ success: true, token: "${token}" }, "http://localhost:5174");
+          window.opener.postMessage({ success: true, token: "${token}" }, "${process.env.FRONTEND_URL}");
           window.close();
         </script>`
       );
     } catch (error) {
       console.error("JWT Sign Error:", error);
-      res.send(
-        `<script>
-          window.opener.postMessage({ success: false, message: "Internal server error" }, "http://localhost:5174");
+      res.send(`
+        <script>
+          window.opener.postMessage(
+            { success: false, message: "Internal server error" },
+            "${process.env.FRONTEND_URL}"
+          );
           window.close();
-        </script>`
-      );
+        </script>
+      `);
     }
   })(req, res, next);
 }

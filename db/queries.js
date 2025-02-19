@@ -305,26 +305,6 @@ const getNoteById = async (id) => {
   return rows[0];
 };
 
-// Function to sort all notes
-const sortNote = async (id, type) => {
-  let query =
-    "SELECT * FROM notes WHERE uid=$1 ORDER BY star DESC, created_at DESC;";
-  if (type == "title") {
-    query =
-      "SELECT * FROM notes WHERE uid=$1 ORDER BY title DESC, created_at DESC;";
-  } else if (type == "date") {
-    query = "SELECT * FROM notes WHERE uid=$1 ORDER BY created_at DESC;";
-  } else if (type == "size") {
-    query =
-      "SELECT * FROM notes WHERE uid=$1 ORDER BY content_markdown DESC, created_at DESC;";
-  } else if (type == "alert") {
-    query =
-      "SELECT * FROM notes WHERE uid=$1 ORDER BY alert DESC, created_at DESC;";
-  }
-  const value = [id];
-  const { rows } = await pool.query(query, value);
-  return rows;
-};
 
 const getAlertNotes = async () => {
   const query = `
@@ -377,7 +357,6 @@ const createSubscriptionsTable = async () => {
 };
 
 const addUserSubscription = async ({ endpoint, keys, uid }) => {
-  console.log("Adding Subscription:", { endpoint, keys, uid });
   const query = `
     INSERT INTO subscriptions (endpoint, keys,uid) 
     VALUES ($1, $2, $3) 
@@ -385,7 +364,6 @@ const addUserSubscription = async ({ endpoint, keys, uid }) => {
   const values = [endpoint, keys, uid];
 
   const { rows } = await pool.query(query, values);
-  console.log("Added Rows:", rows);
   return rows;
 };
 
@@ -394,8 +372,6 @@ const removeUserSubscription = async ({ uid }) => {
   const findQuery = "SELECT * FROM subscriptions WHERE uid = $1;";
   const findValues = [uid];
   const findResult = await pool.query(findQuery, findValues);
-
-  console.log("Find Result:", findResult.rows);
 
   if (findResult.rows.length === 0) {
     console.warn(`No subscription found for uid: ${uid}`);
@@ -407,7 +383,6 @@ const removeUserSubscription = async ({ uid }) => {
   const values = [uid];
   const { rows } = await pool.query(query, values);
 
-  console.log("Deleted Rows:", rows);
   return rows;
 };
 
@@ -427,7 +402,6 @@ export {
   addNote,
   updateNote,
   swapNote,
-  sortNote,
   getNotes,
   getNoteById,
   deleteNote,

@@ -3,8 +3,7 @@ import sendNotifications from "../controllers/notification.controller.js";
 
 
 // Runs every day at 9 AM
-// cron.schedule("0 9 * * *", () => {
-cron.schedule("* * * * *", () => {
+cron.schedule("0 10 * * *", () => {
   console.log("Running daily notification cron...");
   sendNotifications("Good morning! Here’s your daily update.");
 });

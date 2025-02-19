@@ -27,9 +27,7 @@ async function removeSubscription(req, res) {
     const user = req.user;
    const uid = user.id;
     const subscription = await removeUserSubscription({uid});
-    console.log("Subscription:", subscription);
     if (subscription) {
-      console.log("Subscription removed successfully");
       return res.status(200).json({
         message: "Subscription removed successfully",
         subscription: subscription,

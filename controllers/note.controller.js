@@ -2,7 +2,6 @@ import {
   addNote,
   updateNote,
   swapNote,
-  sortNote,
   getNotes,
   deleteNote,
   deleteAllNotes,
@@ -99,23 +98,6 @@ async function getAllNote(req, res) {
   }
 }
 
-async function sortAllNotes(req, res) {
-  try {
-    const { type } = req.body;
-    const user = req.user;
-    const id = user.id;
-    const notes = await sortNote(id, type);
-    if (notes && notes.length > 0) {
-      return res.status(200).json({ notes });
-    } else {
-      return res.status(404).json({ message: "No notes found to sort" });
-    }
-  } catch (error) {
-    console.error("Error fetching notes:", error);
-    return res.status(500).json({ message: "Internal Server Error" });
-  }
-}
-
 async function deleteNoteById(req, res) {
   try {
     const { id } = req.body;
@@ -151,7 +133,6 @@ export {
   markNote,
   changePosition,
   getAllNote,
-  sortAllNotes,
   deleteNoteById,
   deletAllNoteById,
 };

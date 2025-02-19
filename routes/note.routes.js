@@ -10,13 +10,11 @@ import {
   markNote,
   changePosition,
   getAllNote,
-  sortAllNotes,
   deleteNoteById,
   deletAllNoteById,
 } from "../controllers/note.controller.js";
 
 router.get("/all", verifyUser, getAllNote);
-router.get("/sort", verifyUser, verifyNoteOwnership, sortAllNotes);
 router.post("/add", verifyUser, createNote);
 router.put("/update", verifyUser, verifyNoteOwnership, updateNoteByid);
 router.put("/mark", verifyUser, verifyNoteOwnership, markNote);

@@ -127,6 +127,7 @@ async function deletAllNoteById(req, res) {
   }
 }
 
+
 export {
   createNote,
   updateNoteByid,

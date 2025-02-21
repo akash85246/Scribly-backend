@@ -3,7 +3,6 @@ import { getAlertNotes } from "../db/queries.js";
 
 const sendNotifications = async () => {
   try {
-    // Wait for the database query to complete
     const alertNotes = await getAlertNotes();
 
     if (!alertNotes || alertNotes.length === 0) {

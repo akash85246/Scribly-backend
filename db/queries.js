@@ -14,15 +14,15 @@ const convertMarkdown = (text) => {
 // Create Tables if not exists
 const createUserTable = async () => {
   const query = `
-   CREATE TABLE IF NOT EXISTS users (
+   CREATE TABLE IF NOT EXISTS scribly_users (
     id SERIAL PRIMARY KEY,
     profile_picture TEXT DEFAULT NULL,
     username VARCHAR(50) NOT NULL ,
     email TEXT NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    sid INTEGER, -- Foreign key referencing settings
+    sid INTEGER, -- Foreign key referencing scribly_settings
     last_online TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_users_settings FOREIGN KEY (sid) REFERENCES settings(id) ON DELETE SET NULL
+    CONSTRAINT fk_users_settings FOREIGN KEY (sid) REFERENCES scribly_settings(id) ON DELETE SET NULL
 )
   `;
   await pool.query(query);
@@ -33,7 +33,7 @@ const addUser = async (username, profile_picture, email, password) => {
   const settings = await createSetting();
   const sid = settings[0].id;
   const query =
-    "INSERT INTO users (username,profile_picture,email,password,sid) VALUES ($1, $2,$3,$4,$5) RETURNING *";
+    "INSERT INTO scribly_users (username,profile_picture,email,password,sid) VALUES ($1, $2,$3,$4,$5) RETURNING *";
   const values = [username, profile_picture, email, password, sid];
 
   const { rows } = await pool.query(query, values);
@@ -42,14 +42,14 @@ const addUser = async (username, profile_picture, email, password) => {
 
 const getUser = async (email) => {
   const query =
-    "SELECT username,profile_picture,email,sid,id,last_online FROM users WHERE email=$1";
+    "SELECT username,profile_picture,email,sid,id,last_online FROM scribly_users WHERE email=$1";
   const values = [email];
   const { rows } = await pool.query(query, values);
   return rows;
 };
 
 const deleteUser = async (id) => {
-  const query = "DELETE FROM users WHERE id = $1 RETURNING *;";
+  const query = "DELETE FROM scribly_users WHERE id = $1 RETURNING *;";
   const values = [id];
   const { rows } = await pool.query(query, values);
   return rows.length ? rows[0] : null;
@@ -58,7 +58,7 @@ const deleteUser = async (id) => {
 const updateLogin = async (id) => {
   const date = new Date();
   const query = `
-      UPDATE users
+      UPDATE scribly_users
       SET last_online = $1
       WHERE id = $2
       RETURNING *;
@@ -70,7 +70,7 @@ const updateLogin = async (id) => {
 
 const createSettingTable = async () => {
   const query = `
-    CREATE TABLE IF NOT EXISTS settings (
+    CREATE TABLE IF NOT EXISTS scribly_settings (
     id SERIAL PRIMARY KEY, 
     darkmode BOOLEAN DEFAULT FALSE,
     bg TEXT,
@@ -91,7 +91,7 @@ const createSetting = async () => {
     notification = true,
     last_updated_at = new Date();
   const query =
-    "INSERT INTO settings (darkmode,bg,drag,notification,last_updated_at) VALUES ($1, $2,$3,$4,$5) RETURNING *";
+    "INSERT INTO scribly_settings (darkmode,bg,drag,notification,last_updated_at) VALUES ($1, $2,$3,$4,$5) RETURNING *";
   const values = [darkmode, bg, drag, notification, last_updated_at];
   const { rows } = await pool.query(query, values);
   return rows;
@@ -105,7 +105,7 @@ const changeSetting = async (
   notification,
   last_updated_at
 ) => {
-  const userQuery = "SELECT * FROM settings WHERE id = $1;";
+  const userQuery = "SELECT * FROM scribly_settings WHERE id = $1;";
   const userResult = await pool.query(userQuery, [sid]);
 
   let query;
@@ -122,7 +122,7 @@ const changeSetting = async (
       notification !== undefined ? notification : prevSettings.notification;
     last_updated_at = new Date();
     query = `
-        UPDATE settings
+        UPDATE scribly_settings
         SET darkmode = $1,
             bg = $2,
             drag = $3,
@@ -134,7 +134,7 @@ const changeSetting = async (
     values = [darkmode, bg, drag, notification, last_updated_at, sid];
   } else {
     query = `
-        INSERT INTO settings (darkmode, bg, drag, notification, last_updated_at)
+        INSERT INTO scribly_settings (darkmode, bg, drag, notification, last_updated_at)
         VALUES ($1, $2, $3, $4, $5)
         RETURNING *;
       `;
@@ -152,7 +152,7 @@ const changeSetting = async (
 };
 
 const getSetting = async (sid) => {
-  const query = "SELECT * FROM settings WHERE id=$1";
+  const query = "SELECT * FROM scribly_settings WHERE id=$1";
   const value = [sid];
   const { rows } = await pool.query(query, value);
   return rows;
@@ -160,7 +160,7 @@ const getSetting = async (sid) => {
 
 const createNoteTable = async () => {
   const query = `
-    CREATE TABLE IF NOT EXISTS notes (
+    CREATE TABLE IF NOT EXISTS scribly_notes (
     id SERIAL PRIMARY KEY,
     uid INTEGER NOT NULL, 
     sid INTEGER,
@@ -172,8 +172,8 @@ const createNoteTable = async () => {
     star BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     position INTEGER, 
-    CONSTRAINT fk_notes_users FOREIGN KEY (uid) REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT fk_notes_settings FOREIGN KEY (sid) REFERENCES settings(id) ON DELETE SET NULL
+    CONSTRAINT fk_notes_users FOREIGN KEY (uid) REFERENCES scribly_users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_notes_settings FOREIGN KEY (sid) REFERENCES scribly_settings(id) ON DELETE SET NULL
 );
   `;
   await pool.query(query);
@@ -190,7 +190,7 @@ const addNote = async (id, sid, title, content, alert, position) => {
   const title_markdown = convertMarkdown(title);
   const content_markdown = convertMarkdown(content);
 
-  const query = `INSERT INTO notes (uid ,sid,title, content,content_markdown,title_markdown, alert,position) VALUES ($1, $2,$3,$4,$5,$6,$7,$8) RETURNING *`;
+  const query = `INSERT INTO scribly_notes (uid ,sid,title, content,content_markdown,title_markdown, alert,position) VALUES ($1, $2,$3,$4,$5,$6,$7,$8) RETURNING *`;
   const values = [
     id,
     sid,
@@ -211,7 +211,7 @@ const updateNote = async ({ id, title, content, alert, position, star }) => {
     return purify.sanitize(rawHtml);
   };
 
-  const noteQuery = "SELECT * FROM notes WHERE id = $1;";
+  const noteQuery = "SELECT * FROM scribly_notes WHERE id = $1;";
   const noteResult = (await pool.query(noteQuery, [id])).rows[0];
 
   let title_markdown = noteResult.title_markdown;
@@ -232,7 +232,7 @@ const updateNote = async ({ id, title, content, alert, position, star }) => {
   star = star !== undefined ? star : noteResult.star;
 
   const query = `
-    UPDATE notes 
+    UPDATE scribly_notes 
     SET title = $1, content = $2, content_markdown = $3, title_markdown = $4, 
         alert = $5, position = $6, star = $7 
     WHERE id = $8 
@@ -254,7 +254,7 @@ const updateNote = async ({ id, title, content, alert, position, star }) => {
   return rows[0];
 };
 
-//Function to swap notes
+//Function to swap scribly_notes
 const swapNote = async ({ id1, id2 }) => {
   const client = await pool.connect(); // Start transaction
   try {
@@ -264,13 +264,13 @@ const swapNote = async ({ id1, id2 }) => {
     const note2 = await getNoteById(id2);
 
     if (note1.star !== note2.star) {
-      throw new Error("Cannot swap starred and non-starred notes");
+      throw new Error("Cannot swap starred and non-starred scribly_notes");
     }
 
     const pos1 = note1.position;
     const pos2 = note2.position;
 
-    const query = `UPDATE notes SET position = $1 WHERE id = $2 RETURNING *;`;
+    const query = `UPDATE scribly_notes SET position = $1 WHERE id = $2 RETURNING *;`;
 
     // Swap positions
     const { rows: rows1 } = await client.query(query, [pos2, id1]);
@@ -281,7 +281,7 @@ const swapNote = async ({ id1, id2 }) => {
     return { note1: rows1[0], note2: rows2[0] };
   } catch (error) {
     await client.query("ROLLBACK"); // Rollback if any error occurs
-    console.error("Error swapping notes:", error);
+    console.error("Error swapping scribly_notes:", error);
     throw error;
   } finally {
     client.release();
@@ -291,7 +291,7 @@ const swapNote = async ({ id1, id2 }) => {
 // Function to get all notes
 const getNotes = async (id) => {
   const query =
-    "SELECT * FROM notes WHERE uid=$1 ORDER BY star DESC, position ASC;";
+    "SELECT * FROM scribly_notes WHERE uid=$1 ORDER BY star DESC, position ASC;";
   const value = [id];
   const { rows } = await pool.query(query, value);
   return rows;
@@ -299,7 +299,7 @@ const getNotes = async (id) => {
 
 //Function to get note by ID
 const getNoteById = async (id) => {
-  const query = "SELECT * FROM notes WHERE id=$1";
+  const query = "SELECT * FROM scribly_notes WHERE id=$1";
   const value = [id];
   const { rows } = await pool.query(query, value);
   return rows[0];
@@ -317,8 +317,8 @@ const getAlertNotes = async () => {
       n.alert ,
       n.title_markdown,
       n.content_markdown
-    FROM subscriptions s 
-    LEFT JOIN notes n ON s.uid = n.uid 
+    FROM scribly_subscriptions s 
+    LEFT JOIN scribly_notes n ON s.uid = n.uid 
     WHERE n.alert IS NOT NULL AND n.alert >= NOW();
   `;
 
@@ -328,7 +328,7 @@ const getAlertNotes = async () => {
 
 //Function to delete note
 const deleteNote = async (id) => {
-  const query = "DELETE FROM notes WHERE id = $1 RETURNING *;";
+  const query = "DELETE FROM scribly_notes WHERE id = $1 RETURNING *;";
   const values = [id];
   const { rows } = await pool.query(query, values);
   return rows.length ? rows[0] : null;
@@ -336,7 +336,7 @@ const deleteNote = async (id) => {
 
 // Function to delete all notes for a given user ID
 const deleteAllNotes = async (uid) => {
-  const query = "DELETE FROM notes WHERE uid = $1 RETURNING *;";
+  const query = "DELETE FROM scribly_notes WHERE uid = $1 RETURNING *;";
   const values = [uid];
   const { rows } = await pool.query(query, values);
   return rows;
@@ -344,12 +344,12 @@ const deleteAllNotes = async (uid) => {
 
 const createSubscriptionsTable = async () => {
   const query = `
-    CREATE TABLE IF NOT EXISTS subscriptions (
+    CREATE TABLE IF NOT EXISTS scribly_subscriptions (
       id SERIAL PRIMARY KEY,
       endpoint TEXT NOT NULL UNIQUE,
       keys JSONB NOT NULL,
       uid INTEGER NOT NULL,
-      CONSTRAINT fk_subscription_users FOREIGN KEY (uid) REFERENCES users(id) ON DELETE CASCADE
+      CONSTRAINT fk_subscription_users FOREIGN KEY (uid) REFERENCES scribly_users(id) ON DELETE CASCADE
     )
   `;
   await pool.query(query);
@@ -358,7 +358,7 @@ const createSubscriptionsTable = async () => {
 
 const addUserSubscription = async ({ endpoint, keys, uid }) => {
   const query = `
-    INSERT INTO subscriptions (endpoint, keys,uid) 
+    INSERT INTO scribly_subscriptions (endpoint, keys,uid) 
     VALUES ($1, $2, $3) 
     RETURNING *`;
   const values = [endpoint, keys, uid];
@@ -369,7 +369,7 @@ const addUserSubscription = async ({ endpoint, keys, uid }) => {
 
 const removeUserSubscription = async ({ uid }) => {
   // Check if the email exists
-  const findQuery = "SELECT * FROM subscriptions WHERE uid = $1;";
+  const findQuery = "SELECT * FROM scribly_subscriptions WHERE uid = $1;";
   const findValues = [uid];
   const findResult = await pool.query(findQuery, findValues);
 
@@ -378,19 +378,26 @@ const removeUserSubscription = async ({ uid }) => {
     return [];
   }
 
-  // Delete the subscription
-  const query = "DELETE FROM subscriptions WHERE uid = $1 RETURNING *";
+  const query = "DELETE FROM scribly_subscriptions WHERE uid = $1 RETURNING *";
   const values = [uid];
   const { rows } = await pool.query(query, values);
 
   return rows;
 };
 
-// Initialize the table when the app starts
-createSettingTable();
-createUserTable();
-createNoteTable();
-createSubscriptionsTable();
+const initializeDatabase = async () => {
+  try {
+    await createSettingTable();       
+    await createUserTable();          
+    await createNoteTable();         
+    await createSubscriptionsTable();
+    console.log("✅ All tables initialized successfully");
+  } catch (err) {
+    console.error("❌ Error initializing tables:", err);
+  }
+};
+
+initializeDatabase();
 
 export {
   addUser,

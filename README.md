@@ -346,13 +346,13 @@ I would like to extend my gratitude to the following resources and technologies 
 
 
 <!-- MARKDOWN LINKS & IMAGES -->
-[contributors-shield]: https://img.shields.io/github/contributors/akash85246/Scribly.svg?style=for-the-badge
+[contributors-shield]: https://img.shields.io/github/contributors/akash85246/Scribly-backend.svg?style=for-the-badge
 [contributors-url]: https://github.com/akash85246/Scribly-backend/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/akash85246/Scribly.svg?style=for-the-badge
+[forks-shield]: https://img.shields.io/github/forks/akash85246/Scribly-backend.svg?style=for-the-badge
 [forks-url]: https://github.com/akash85246/Scribly-backend/network/members
-[stars-shield]: https://img.shields.io/github/stars/akash85246/Scribly.svg?style=for-the-badge
+[stars-shield]: https://img.shields.io/github/stars/akash85246/Scribly-backend.svg?style=for-the-badge
 [stars-url]: https://github.com/akash85246/Scribly-backend/stargazers
-[issues-shield]: https://img.shields.io/github/issues/akash85246/Scribly.svg?style=for-the-badge
+[issues-shield]: https://img.shields.io/github/issues/akash85246/Scribly-backend.svg?style=for-the-badge
 [issues-url]: https://github.com/akash85246/Scribly-backend/issues
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://www.linkedin.com/in/akash-rajput-68226833a/

@@ -8,9 +8,12 @@ import subscriptionRoutes from "./routes/subscription.routes.js";
 import passport from "passport";
 import session from "express-session";
 import "./cron/notificationCron.js";
+import path from "path";
 
 dotenv.config();
 const app = express();
+
+app.use(express.static(path.join(process.cwd(), 'public')));
 
 app.use(
   cors({

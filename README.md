@@ -102,8 +102,7 @@ Powered by robust backend technologies for seamless performance and security.
 - [![CORS][CORS]][CORS-url]  
 - [![Dotenv][Dotenv]][Dotenv-url] 
 - [![Git][Git]][Git-url] 
-- [![GitHub][GitHub]][GitHub-url] 
-- [![Railway][Railway]][Railway-url]
+- [![GitHub][GitHub]][GitHub-url]
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -329,7 +328,6 @@ Project Link: [https://github.com/akash85246/Scribly-backend](https://github.com
 I would like to extend my gratitude to the following resources and technologies that made this project possible:  
 
 - **Google Authentication** – For enabling secure OAuth-based user authentication.  
-- **Railway** – For providing seamless deployment and database hosting.  
 - **PostgreSQL** – For offering a reliable and scalable database solution.  
 - **Node.js & Express.js** – For powering the backend and handling API requests efficiently.  
 - **Passport.js** – For simplifying authentication and session management.  
@@ -338,8 +336,7 @@ I would like to extend my gratitude to the following resources and technologies 
 - **Node-Cron** – For scheduling background tasks and automated reminders.  
 - **Dompurify & JSDOM** – For ensuring safe and sanitized HTML handling.  
 - **MDN & DevDocs** – For providing excellent documentation and learning resources.  
-- **Open Source Community** – For their contributions to the tools and libraries that made this backend possible.  
-- **Friends & Peers** – For valuable feedback, testing, and support.  
+- **Open Source Community** – For their contributions to the tools and libraries that made this backend possible. 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
